@@ -5,7 +5,7 @@ import json
 import time
 
 from asyncfuntion import parse_all
-from sql_function import query_all, insert
+from sql_function import query_all, update
 
 def chop(list, chunk):
     max_c = ceil(len(list)/chunk)
@@ -13,10 +13,10 @@ def chop(list, chunk):
     chunks = [list[series[i]:series[i+1]] for i in range(len(series)-1)]
     return chunks
 
-def parser(url, html):
+def parser(url, http, html):
     soup = BeautifulSoup(html,"html.parser")
     tag = soup.find("html")
-    output = dict(url=url,lang=None)
+    output = dict(url=url,http=http,lang=None)
     if "lang" in tag.attrs:
         print("✅ " + url)
         output['lang'] = tag['lang']
@@ -30,14 +30,15 @@ with open("parse 5000 websites.txt","a") as f:
 
     # parse all urls
     results = []
-    chunks = chop(query_all()[:175], 80)
+    count = 0
+    chunks = chop(query_all(),30)
     for urls in chunks:
         result = asyncio.run(parse_all(parser,urls))
         for entry in result:
             if entry != None:
-                entry['url'] = entry['url'].lstrip("https://")
-                insert(entry)
+                update(entry)
+                count += 1
 
     # define calculation time
     end = time.time()
-    f.write(f"{end-start:.2f} sec")
+    f.write(f"{count} {end-start:.2f} sec\n")

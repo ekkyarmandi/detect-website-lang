@@ -7,8 +7,9 @@ asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 async def render(session, function, url):
     loop = asyncio.get_event_loop()
     try:
-        async with session.get(url) as r:
-            result = await loop.run_in_executor(None, function, url, await r.text())
+        http = "https://" + url if "http" not in url else url
+        async with session.get(http) as r:
+            result = await loop.run_in_executor(None, function, url, http, await r.text())
             return result
     except:
         return None
@@ -16,7 +17,6 @@ async def render(session, function, url):
 async def gather(session, function, urls):
     tasks = []
     for url in urls:
-        url = "https://" + url if "http" not in url else url
         task = asyncio.create_task(render(session, function, url))
         tasks.append(task)
     results = await asyncio.gather(*tasks)
