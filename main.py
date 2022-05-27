@@ -5,6 +5,7 @@ import json
 import time
 
 from asyncfuntion import parse_all
+from sql_function import query_all, insert
 
 def chop(list, chunk):
     max_c = ceil(len(list)/chunk)
@@ -24,27 +25,19 @@ def parser(url, html):
     return output
 
 # start the timestamp
-f = open("parse 5000 websites.txt","w")
 start = time.time()
+with open("parse 5000 websites.txt","a") as f:
 
-# parse all urls
-results = []
-urls = json.load(open("data/the_first_5000.json"))
-chunks = chop(urls[:275], 50)
-for urls in chunks:
-    result = asyncio.run(parse_all(parser,urls))
-    results.extend(result)
+    # parse all urls
+    results = []
+    chunks = chop(query_all()[:175], 80)
+    for urls in chunks:
+        result = asyncio.run(parse_all(parser,urls))
+        for entry in result:
+            if entry != None:
+                entry['url'] = entry['url'].lstrip("https://")
+                insert(entry)
 
-# define calculation time
-end = time.time()
-f.write(f"done in {end-start:,2f}")
-
-# dump the results
-json.dump(
-    results,
-    open("results.json","w"),
-    indent=4
-)
-
-# close the file
-f.close()
+    # define calculation time
+    end = time.time()
+    f.write(f"{end-start:.2f} sec")

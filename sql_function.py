@@ -1,3 +1,4 @@
+from rich.progress import track
 import sqlite3
 import json
 
@@ -24,9 +25,18 @@ def insert(entries: dict, table: str="websites"):
         cur.execute(cmd,(*values,))
         con.commit()
 
+def query_all(table: str = "websites"):
+    with sqlite3.connect("data/websites.db") as con:
+        cur = con.cursor()
+        cmd = f"SELECT url FROM {table} WHERE lang IS NULL;"
+        cur.execute(cmd)
+        queries = cur.fetchall()
+    return [j[0] for j in queries]
+
 
 if __name__ == "__main__":
 
+    # create new table
     # field = dict(
     #     url="TEXT UNIQUE",
     #     lang="TEXT"
@@ -34,9 +44,11 @@ if __name__ == "__main__":
 
     # create_table("websites",field)
 
+    # load urls into databaes
+    # urls = json.load(open("data/the_first_5000.json"))
+    # for url in track(urls):
+    #     insert(dict(url=url,lang=None))
 
-    from rich.progress import track
-
-    urls = json.load(open("data/the_first_5000.json"))
-    for url in track(urls):
-        insert(dict(url=url,lang=None))
+    # query test
+    urls =  query_all()
+    print(urls)
