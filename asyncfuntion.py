@@ -9,10 +9,13 @@ async def render(session, function, url):
     try:
         http = "https://" + url if "http" not in url else url
         async with session.get(http) as r:
-            result = await loop.run_in_executor(None, function, url, http, await r.text())
+            result = await loop.run_in_executor(None, function, url, await r.text())
             return result
     except:
-        return None
+        return dict(
+            domain=url,
+            domain_language="Error403"
+        )
 
 async def gather(session, function, urls):
     tasks = []

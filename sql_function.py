@@ -1,3 +1,4 @@
+from venv import create
 from rich.progress import track
 from pandas import DataFrame
 import sqlite3
@@ -6,8 +7,6 @@ import json
 def value2str(dict):
     list = []
     for value in dict.values():
-        if type(value) == str and value != "NULL" and "'" not in value:
-            value = "'" + value + "'"
         if type(value) == str and value != "NULL":
             value = '"' + value + '"'
         elif value == None:
@@ -38,17 +37,27 @@ def insert(entry: dict, table: str = "websites"):
             f.write(str(entry)+"\n")
 
 def update(entry: dict, table: str = "websites"):
-    values = ",".join([f"{k}='{v}'" for k,v in entry.items() if k!='url'])
+    values = ",".join([f"{k}='{v}'" for k,v in entry.items() if k!='domain'])
     with sqlite3.connect("data/websites.db") as con:
-        cur = con.cursor()
-        cmd = f"UPDATE {table} SET {values} WHERE url=?"
-        cur.execute(cmd,(entry['url'],))
-        con.commit()
+        try:
+            cur = con.cursor()
+            cmd = f"UPDATE {table} SET {values} WHERE domain=?"
+            cur.execute(cmd,(entry['domain'],))
+            con.commit()
+        except:
+            print(entry['domain'])
 
 def query_all(table: str = "websites"):
     with sqlite3.connect("data/websites.db") as con:
         cur = con.cursor()
-        cmd = f"SELECT url FROM {table} WHERE lang IS NULL;"
+        cmd = f"SELECT domain FROM {table} WHERE domain_language IS NULL LIMIT 50000;"
+        cur.execute(cmd)
+        queries = cur.fetchall()
+    return [j[0] for j in queries]
+
+def query(cmd: str) -> list:
+    with sqlite3.connect("data/websites.db") as con:
+        cur = con.cursor()
         cur.execute(cmd)
         queries = cur.fetchall()
     return [j[0] for j in queries]
@@ -69,14 +78,47 @@ def export(filename: str, table: str = "websites"):
 
 if __name__ == "__main__":
 
-    # # create new table
-    # field = dict(
-    #     url="TEXT UNIQUE",
-    #     http="TEXT",
-    #     lang="TEXT"
-    # )
-
-    # create_table("websites",field)
+    # create new table
+    columns = [
+        "source",
+        "domain",
+        "site",
+        "usd_spent",
+        "usd_revenue",
+        "company",
+        "vertical",
+        "tranco",
+        "page_rank",
+        "majestic",
+        "umbrella",
+        "telephones",
+        "emails",
+        "twitter",
+        "facebook",
+        "linkedin",
+        "google",
+        "pinterest",
+        "github",
+        "instagram",
+        "vk",
+        "vimeo",
+        "youtube",
+        "tiktok",
+        "people",
+        "city",
+        "state",
+        "zip",
+        "country",
+        "first_detected",
+        "last_found",
+        "first_indexed",
+        "last_indexed",
+        "exclusion",
+        "compliance",
+        "domain_language"
+    ]
+    field = {key:'"TEXT"' for key in columns}
+    create_table("websites",field)
 
     # load urls into database
     # urls = json.load(open("data/the_first_5000.json"))
@@ -84,4 +126,4 @@ if __name__ == "__main__":
     #     insert(dict(url=url,lang=None))
 
     # query test
-    export(filename="output/example_5000websites.xlsx")
+    # export(filename="output/example_5000websites.xlsx")
