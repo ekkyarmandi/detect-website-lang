@@ -51,7 +51,7 @@ def lang_identifier(url, html):
             domain_language=result['lang']
         )
     else:
-        print("�� " + url)
+        print("❌ " + url)
         return dict(
             domain=url,
             domain_language=None
